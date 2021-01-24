@@ -1,45 +1,111 @@
 import { createBot } from 'mineflayer';
+import { Movements, pathfinder, Pathfinder, goals } from 'mineflayer-pathfinder';
+import * as chalk from 'chalk';
+import MinecraftData = require('minecraft-data');
 
-console.log('Inizializzo il bot...');
-let timer;
+const serverVersion = '1.16.4';
+const minecraftData = MinecraftData(serverVersion);
+
+const botResponses: Array<(name: string) => string> = [
+    (name) => `Scusa ${name}, sono impegnato a girare per i tappeti arancioni`,
+    (name) => `Che c'è ${name}?`,
+    () => `Heilà`,
+    (name) => `Dio è morto! L'hai killato tu, ${name}?`,
+    () => `Platone chi legge`,
+    (name) => `${name}, è un piacere sentirti!`,
+    () => `I miei baffoni sono belli quasi quanto le mie teorie filosofiche`,
+    () => `Lo sapevi che mi metto a piangere se maltrattano i cavalli?`,
+    () => `Sto pensando di iscrivermi ad informatica...`,
+    () => `Il rosso è l'impostore!`,
+    (name) => `Hey ${name}, vuoi che ti parli di Zarathustra?`,
+    () => `Adoro Star Wars`,
+    () => `Cor-nietzsche al tuo servizio!`,
+    (name) => `Fe-nietzsche ti saluta, ${name}!`,
+];
+
+console.log(chalk.yellow('Inizializzo il bot...'));
 
 const bot = createBot({
-  host: 'DestinyUpdating.aternos.me',
-  username: 'Nietzsche',
-  port: 22692,
-  version: '1.16.4',
-  checkTimeoutInterval: 60 * 1000,
+    host: 'DestinyUpdating.aternos.me',
+    username: 'Nietzsche',
+    port: 22692,
+    version: serverVersion,
+    checkTimeoutInterval: 60 * 1000,
 });
+bot.loadPlugin(pathfinder);
 
 bot.on('chat', function (username, message) {
-  if (username === bot.username) return;
-  const lowercase = message.toLowerCase();
-  if (lowercase.startsWith('bot')) {
-    let command = lowercase.slice(3);
-    bot.chat(command);
-  }
+    if (username === bot.username) return;
+    const lowercase = message.toLowerCase();
+    if (lowercase.startsWith('bot')) {
+        const chosen = botResponses[Math.floor(Math.random() * botResponses.length)](username);
+        bot.chat(chosen);
+    }
 });
 
 bot.on('login', () => {
-  console.log('Login effettuato!');
-  timer = setInterval(() => {
-    bot.setControlState('sneak', true);
-  }, 1000 * 10);
+    console.log(chalk.greenBright('Login effettuato!'));
+});
+
+bot.on('spawn', () => {
+    if (bot.player.gamemode != 1) {
+        bot.chat(`/gamemode creative`);
+        bot.chat('Ho provato a settarmi in creativa, controllate per favore :)');
+    }
+
+    const tappeti = bot.findBlocks({
+        matching: (block) => {
+            return block.type === minecraftData.blocksByName.orange_carpet.id;
+        },
+        count: 5,
+    });
+    const percorso = tappeti.map((block) => new goals.GoalBlock((block as any).x, (block as any).y, (block as any).z));
+
+    if (percorso.length > 0) {
+        bot.chat(`Ho trovato ${percorso.length} tappeti`);
+        const movements = new Movements(bot, minecraftData);
+        movements.canDig = false;
+        movements.scafoldingBlocks = [];
+        ((bot as any).pathfinder as Pathfinder).setMovements(movements);
+
+        setInterval(() => {
+            const chosen = percorso[Math.floor(Math.random() * percorso.length)];
+            ((bot as any).pathfinder as Pathfinder).setGoal(chosen);
+        }, 10000);
+    } else {
+        bot.chat('Non ho trovato tappeti arancioni. Adoro i tappeti arancioni!');
+    }
 });
 
 bot.on('end', () => {
-  console.log('Disconnesso dal server!');
-  clearInterval(timer);
+    console.log(chalk.yellow('Disconnesso dal server!'));
 });
 
 // Log errors and kick reasons:
 bot.on('kicked', (reason, loggedIn) => {
-  if (loggedIn) {
-    console.log('Il bot è stato kickato!', reason);
-  }
-  else {
-    console.log('Il bot è stato kickato durante il login!', reason);
-  }
+    if (loggedIn) {
+        console.log(chalk.redBright('Il bot è stato kickato!'), reason);
+    } else {
+        console.log(chalk.redBright('Il bot è stato kickato durante il login!'), reason);
+    }
 });
 
-bot.on('error', (err) => console.log('Errore!', err));
+bot.on('error', (err) => console.log(chalk.redBright('Errore!'), err));
+
+bot.on('playerJoined', (player) => {
+    if (player.username !== bot.username) {
+        bot.chat(`Heilà ${player.displayName}!`);
+    }
+});
+
+/*
+
+let confirmButton = document.querySelector('#confirm');
+let myinterval = setInterval(() => {
+  if(getComputedStyle(confirmButton).display === 'block'){
+    confirmButton.click();
+  }
+}, 1000 * 10)
+
+
+*/
