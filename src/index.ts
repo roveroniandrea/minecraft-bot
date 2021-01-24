@@ -54,9 +54,7 @@ bot.on('spawn', () => {
     }
 
     const tappeti = bot.findBlocks({
-        matching: (block) => {
-            return block.type === minecraftData.blocksByName.orange_carpet.id;
-        },
+        matching: minecraftData.blocksByName.orange_carpet.id,
         count: 5,
     });
     const percorso = tappeti.map((block) => new goals.GoalBlock((block as any).x, (block as any).y, (block as any).z));
