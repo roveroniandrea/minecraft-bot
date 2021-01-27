@@ -19,14 +19,15 @@ app.get('', (_, res) => {
 /*
 let confirmButton = document.querySelector('#confirm');
 let restartButton = document.querySelector('#restart');
-alert('Il bot si può avviare da solo!');
+if(window.location.pathname === '/server/'){
+	alert('Il bot si può avviare da solo!');
+}
 let myinterval = setInterval(() => {
   if(getComputedStyle(confirmButton).display === 'block'){
 	confirmButton.click();
   }
   if(getComputedStyle(restartButton).display === 'block'){
 	$.ajax('http://localhost:8000');
-	clearInterval(myinterval);
   }
 }, 1000 * 10);
 */
