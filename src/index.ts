@@ -6,7 +6,7 @@ const app = express();
 const serverPort = 8000;
 
 app.listen(serverPort, () => {
-	console.log(chalk.greenBright(`Server in ascolto sulla porta ${serverPort}`));
+	console.log(chalk.greenBright(`${new Date().toTimeString()}: Server in ascolto sulla porta ${serverPort}`));
 });
 
 app.get('', (_, res) => {
